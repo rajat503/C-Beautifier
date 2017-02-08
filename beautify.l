@@ -293,11 +293,17 @@ void init() {
     }
 }
 
+
 int main() {
+	FILE *fp;
+	fp = freopen("output.html","w",stdout);
     printf("<html><pre>\n");
     indent();
     init();
+	yyin = fopen("input.c", "r");
     yylex();
     printf("\n</pre></html>\n");
+	fclose(fp);
+	fclose(yyin);
     return 0;
 }
