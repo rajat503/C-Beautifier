@@ -70,12 +70,12 @@ ch  [^\\'\"\n]
 "[" { write_bopen(); }
 "]" { write_bclose(); }
 ";" { write_sep(); }
-"+"|"-"|"%"|"/"|"*"|"="|"+="|"-="|"/="|"*="|"=="|"!="|">="|"<="|"<"|">"|"||"|"&&"|"<<"|">>"|"|"|"&"|"~"|"^"|"," { write_op(); }
+(\.|\-\>|\+\+|\-\-|&|\*|\+|\-|~|!|\/|\%|\<\<|\>\>|\<|\>|=|==|&&|\<=|\>=|!=|\^\||&&|\|\|\?|\*=|\/=|\%=|\+=|\-=|\<\<=|\>\>=|&=|\^=|\|=|,|#|##|;|:|\"|\.\.\.) { write_op(); }
+
 "\/\/"[^\n]*	{ write_inline(); }
 "/*" { write_comment(); }
 #[^\n]* { write_directive(); }
-[\n\t\v\n\r\f] ;
-" "* {ECHO;}
+[ \t\v\n\r\f] ;
 {ch} { error(); }
 %%
 
@@ -194,6 +194,7 @@ void write_inline() {
 	printf("<font color='#00FF00'>");
 	write_html();
 	printf("</font>");
+	indent();
 }
 
 void write_comment() {
@@ -208,14 +209,16 @@ void write_comment() {
         goto loop;
     }
     if (c != 0)
-    write_html_char(c1);
+	write_html_char(c1);
     printf("</font>");
+	indent();
 }
 
 void write_directive() {
 	printf("<font color='#FF00FF'><b>");
 	write_html();
 	printf("</b></font>");
+	indent();
 }
 
 void error() {
