@@ -58,11 +58,11 @@ ch  [^\\'\"\n]
 %%
 {ditto}({back}{ch}|{back}{back}|{back}{quote}|{back}{ditto}|{ch}|{quote})*{ditto}   { write_string(); }
 {quote}({back}{ch}|{back}{back}|{back}{quote}|{back}{ditto}|{ch}|{ditto}){quote}    { write_char(); }
-0([0-7]+)   { write_oct(); }
+0([0-7]+)   { write_oct();}
 0[xX]({hex})+   { write_hex(); }
 {digit}+    { write_int(); }
-{digit}*"."({digit}*)({exp}?) { write_fp(); }
-{alpha}({alpha}|{digit})* { write_id(); }
+{digit}+"."({digit}*)({exp}?) { write_fp();  }
+{alpha}({alpha}|{digit})*(" "|"\n")? { write_id();  }
 "{" { write_begin(); }
 "}" { write_end(); }
 "(" { write_open(); }
@@ -70,11 +70,12 @@ ch  [^\\'\"\n]
 "[" { write_bopen(); }
 "]" { write_bclose(); }
 ";" { write_sep(); }
-(\.|\-\>|\+\+|\-\-|&|\*|\+|\-|~|!|\/|\%|\<\<|\>\>|\<|\>|=|==|&&|\<=|\>=|!=|\^\||&&|\|\|\?|\*=|\/=|\%=|\+=|\-=|\<\<=|\>\>=|&=|\^=|\|=|,|#|##|;|:|\"|\.\.\.) { write_op(); }
+(\.|\-\>|\+\+|\-\-|&|\*|\+|\-|~|!|\/|\%|\<\<|\>\>|\<|\>|=|==|"||"|"|"|\<=|\>=|!=|\^\||&&|\|\|\?|\*=|\/=|\%=|\+=|\-=|\<\<=|\>\>=|&=|\^=|\|=|,|#|##|;|:|\"|\.\.\.) { write_op(); }
 
 "\/\/"[^\n]*	{ write_inline(); }
 "/*" { write_comment(); }
 #[^\n]* { write_directive(); }
+
 [ \t\v\n\r\f] ;
 {ch} { error(); }
 %%
@@ -122,10 +123,18 @@ void write_id() {
     printf("</font>");
     */
     char *s = yytext;
+	int flag=0;
+	if(s[strlen(s)-1]==' ' || s[strlen(s)-1]=='\n') {
+		flag=1;
+		s[strlen(s)-1]='\0';
+	}
     int x = lookup(s);
     if(x==-1) {
         insert(s, 1);
-        printf("<font color='#0000FF'><a name=\"%s\">%s</a>", s, s);
+		if(flag==1)
+        	printf("<font color='#0000FF'><a name=\"%s\">%s</a> ", s, s);
+		else
+			printf("<font color='#0000FF'><a name=\"%s\">%s</a>", s, s);
         printf("</font>");
     }
     else {
@@ -133,10 +142,15 @@ void write_id() {
             printf("<font color='#0000FF'><b>");
             while(*s)
                 write_html_char(*s++);
+			if(flag==1)
+				write_html_char(' ');
             printf("</b></font>");
         }
         else {
-            printf("<font color='#0000FF'><a href=\"#%s\">%s</a>", s, s);
+			if(flag==1)
+            	printf("<font color='#0000FF'><a href=\"#%s\">%s</a> ", s, s);
+			else
+				printf("<font color='#0000FF'><a href=\"#%s\">%s</a>", s, s);
             printf("</font>");
         }
     }
@@ -158,13 +172,13 @@ void write_end() {
 
 void write_open() {
     write_html();
-    putchar(' ');
+    //putchar(' ');
     paren++;
 }
 
 void write_close() {
-    putchar(' ');
 	write_html();
+	//putchar(' ');
 	paren--;
 }
 
