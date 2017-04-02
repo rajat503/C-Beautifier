@@ -1,0 +1,319 @@
+<html><pre>
+
+1   <font color='#FF00FF'><b>#include&lt;stdio.h&gt;</b></font>
+2   <font color='#FF00FF'><b>#include&lt;stdlib.h&gt;</b></font>
+3   <font color='#FF00FF'><b>#include&lt;assert.h&gt;</b></font>
+4   <font color='#FF00FF'><b>#include&lt;string.h&gt;</b></font>
+5   <font color='#FF00FF'><b>#define INDENT (4)</b></font>
+6   <font color='#0000FF'><b>int </b></font><font color='#0000FF'><a name="line">line</a> </font><b>=</b><font color='#00FFFF'><i>1</i></font>;
+7   <font color='#0000FF'><b>int </b></font><font color='#0000FF'><a name="column">column</a> </font><b>=</b><font color='#00FFFF'><i>4</i></font>;
+8   <font color='#0000FF'><b>int </b></font><font color='#0000FF'><a name="paren">paren</a> </font><b>=</b><font color='#00FFFF'><i>0</i></font>;
+9   <font color='#FF00FF'><b>#define MAXSYMBOLS 200</b></font>
+10  <font color='#0000FF'><b>struct </b></font><font color='#0000FF'><a name="entry">entry</a> </font>
+11  {
+12      <font color='#0000FF'><b>char </b></font><b>*</b><font color='#0000FF'><a name="lexptr">lexptr</a></font>;
+13      <font color='#0000FF'><b>int </b></font><font color='#0000FF'><a name="token">token</a></font>;
+14      
+15  }
+16  ;
+17  <font color='#0000FF'><b>struct </b></font><font color='#0000FF'><a href="#entry">entry</a> </font><font color='#0000FF'><a name="symtable">symtable</a></font>[<font color='#0000FF'><a name="MAXSYMBOLS">MAXSYMBOLS</a></font>];
+18  <font color='#0000FF'><b>int </b></font><font color='#0000FF'><a name="lookup">lookup</a></font>(<font color='#0000FF'><b>char </b></font><b>*</b><font color='#0000FF'><a name="lexeme">lexeme</a></font>);
+19  <font color='#00FF00'>// returns index of the symbol table where the lexeme appears, -1 otherwise</font>
+20  <font color='#0000FF'><b>int </b></font><font color='#0000FF'><a name="insert">insert</a></font>(<font color='#0000FF'><b>char </b></font><b>*</b><font color='#0000FF'><a name="a">a</a></font><b>,</b><font color='#0000FF'><b>int </b></font><font color='#0000FF'><a href="#token">token</a></font>);
+21  <font color='#00FF00'>// inserts a new entry into a symbol table</font>
+22  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a name="init">init</a></font>();
+23  <font color='#00FF00'>// initializes the symbol table with preloaded keywords</font>
+24  <font color='#0000FF'><b>int </b></font><font color='#0000FF'><a name="insert_index">insert_index</a> </font><b>=</b><font color='#00FFFF'><i>0</i></font>;
+25  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a name="indent">indent</a></font>();
+26  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a name="write_html">write_html</a></font>();
+27  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a name="write_html_char">write_html_char</a></font>(<font color='#0000FF'><b>char</b></font>);
+28  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a name="write_string">write_string</a></font>();
+29  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a name="write_char">write_char</a></font>();
+30  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a name="write_oct">write_oct</a></font>();
+31  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a name="write_hex">write_hex</a></font>();
+32  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a name="write_int">write_int</a></font>();
+33  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a name="write_fp">write_fp</a></font>();
+34  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a name="write_id">write_id</a></font>();
+35  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a name="write_begin">write_begin</a></font>();
+36  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a name="write_end">write_end</a></font>();
+37  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a name="write_open">write_open</a></font>();
+38  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a name="write_close">write_close</a></font>();
+39  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a name="write_bopen">write_bopen</a></font>();
+40  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a name="write_bclose">write_bclose</a></font>();
+41  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a name="write_sep">write_sep</a></font>();
+42  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a name="write_op">write_op</a></font>();
+43  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a name="write_inline">write_inline</a></font>();
+44  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a name="write_comment">write_comment</a></font>();
+45  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a name="write_directive">write_directive</a></font>();
+46  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a name="error">error</a></font>();
+47  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a href="#write_string">write_string</a></font>()
+48  {
+49      <font color='#0000FF'><a name="printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;font color='#FF0000'&gt;&quot;</font>);
+50      <font color='#0000FF'><a href="#write_html">write_html</a></font>();
+51      <font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;/font&gt;&quot;</font>);
+52      
+53  }
+54  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a href="#write_char">write_char</a></font>()
+55  {
+56      <font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;font color='#00FFFF'&gt;&lt;u&gt;&quot;</font>);
+57      <font color='#0000FF'><a href="#write_html">write_html</a></font>();
+58      <font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;/u&gt;&lt;/font&gt;&quot;</font>);
+59      
+60  }
+61  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a href="#write_oct">write_oct</a></font>()
+62  {
+63      <font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;font color='#00FFFF'&gt;&lt;i&gt;&quot;</font>);
+64      <font color='#0000FF'><a href="#write_html">write_html</a></font>();
+65      <font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;/i&gt;&lt;/font&gt;&quot;</font>);
+66      
+67  }
+68  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a href="#write_hex">write_hex</a></font>()
+69  {
+70      <font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;font color='#00FFFF'&gt;&lt;i&gt;&quot;</font>);
+71      <font color='#0000FF'><a href="#write_html">write_html</a></font>();
+72      <font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;/i&gt;&lt;/font&gt;&quot;</font>);
+73      
+74  }
+75  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a href="#write_int">write_int</a></font>()
+76  {
+77      <font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;font color='#00FFFF'&gt;&lt;i&gt;&quot;</font>);
+78      <font color='#0000FF'><a href="#write_html">write_html</a></font>();
+79      <font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;/i&gt;&lt;/font&gt;&quot;</font>);
+80      
+81  }
+82  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a href="#write_fp">write_fp</a></font>()
+83  {
+84      <font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;font color='#00FFFF'&gt;&quot;</font>);
+85      <font color='#0000FF'><a href="#write_html">write_html</a></font>();
+86      <font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;/font&gt;&quot;</font>);
+87      
+88  }
+89  <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a href="#write_id">write_id</a></font>()
+90  {
+91      <font color='#00FF00'>/*
+    printf(&quot;&lt;font color='#0000FF'&gt;&quot;);
+    write_html();
+    printf(&quot;&lt;/font&gt;&quot;);
+    */</font>
+92      <font color='#0000FF'><b>char </b></font><b>*</b><font color='#0000FF'><a name="s">s</a> </font><b>=</b><font color='#0000FF'><a name="yytext">yytext</a></font>;
+93      <font color='#0000FF'><b>int </b></font><font color='#0000FF'><a name="flag">flag</a></font><b>=</b><font color='#00FFFF'><i>0</i></font>;
+94      <font color='#0000FF'><b>if</b></font>(<font color='#0000FF'><a href="#s">s</a></font>[<font color='#0000FF'><a name="strlen">strlen</a></font>(<font color='#0000FF'><a href="#s">s</a></font>)<b>-</b><font color='#00FFFF'><i>1</i></font>]<b>==</b><font color='#00FFFF'><u>' '</u></font><b>||</b><font color='#0000FF'><a href="#s">s</a></font>[<font color='#0000FF'><a href="#strlen">strlen</a></font>(<font color='#0000FF'><a href="#s">s</a></font>)<b>-</b><font color='#00FFFF'><i>1</i></font>]<b>==</b><font color='#00FFFF'><u>'\n'</u></font>)
+95      {
+96          <font color='#0000FF'><a href="#flag">flag</a></font><b>=</b><font color='#00FFFF'><i>1</i></font>;
+97          <font color='#0000FF'><a href="#s">s</a></font>[<font color='#0000FF'><a href="#strlen">strlen</a></font>(<font color='#0000FF'><a href="#s">s</a></font>)<b>-</b><font color='#00FFFF'><i>1</i></font>]<b>=</b><font color='#00FFFF'><u>'\0'</u></font>;
+98          
+99      }
+100     <font color='#0000FF'><b>int </b></font><font color='#0000FF'><a name="x">x</a> </font><b>=</b><font color='#0000FF'><a href="#lookup">lookup</a></font>(<font color='#0000FF'><a href="#s">s</a></font>);
+101     <font color='#0000FF'><b>if</b></font>(<font color='#0000FF'><a href="#x">x</a></font><b>==</b><b>-</b><font color='#00FFFF'><i>1</i></font>)
+102     {
+103         <font color='#0000FF'><a href="#insert">insert</a></font>(<font color='#0000FF'><a href="#s">s</a></font><b>,</b><font color='#00FFFF'><i>1</i></font>);
+104         <font color='#0000FF'><b>if</b></font>(<font color='#0000FF'><a href="#flag">flag</a></font><b>==</b><font color='#00FFFF'><i>1</i></font>)<font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;font color='#0000FF'&gt;&lt;a name=\&quot;%s\&quot;&gt;%s&lt;/a&gt; &quot;</font><b>,</b><font color='#0000FF'><a href="#s">s</a></font><b>,</b><font color='#0000FF'><a href="#s">s</a></font>);
+105         <font color='#0000FF'><b>else </b></font><font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;font color='#0000FF'&gt;&lt;a name=\&quot;%s\&quot;&gt;%s&lt;/a&gt;&quot;</font><b>,</b><font color='#0000FF'><a href="#s">s</a></font><b>,</b><font color='#0000FF'><a href="#s">s</a></font>);
+106         <font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;/font&gt;&quot;</font>);
+107         
+108     }
+109     <font color='#0000FF'><b>else </b></font>
+110     {
+111         <font color='#0000FF'><b>if</b></font>(<font color='#0000FF'><a href="#symtable">symtable</a></font>[<font color='#0000FF'><a href="#x">x</a></font>]<b>.</b><font color='#0000FF'><a href="#token">token</a></font><b>==</b><font color='#00FFFF'><i>0</i></font>)
+112         {
+113             <font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;font color='#0000FF'&gt;&lt;b&gt;&quot;</font>);
+114             <font color='#0000FF'><b>while</b></font>(<b>*</b><font color='#0000FF'><a href="#s">s</a></font>)<font color='#0000FF'><a href="#write_html_char">write_html_char</a></font>(<b>*</b><font color='#0000FF'><a href="#s">s</a></font><b>++</b>);
+115             <font color='#0000FF'><b>if</b></font>(<font color='#0000FF'><a href="#flag">flag</a></font><b>==</b><font color='#00FFFF'><i>1</i></font>)<font color='#0000FF'><a href="#write_html_char">write_html_char</a></font>(<font color='#00FFFF'><u>' '</u></font>);
+116             <font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;/b&gt;&lt;/font&gt;&quot;</font>);
+117             
+118         }
+119         <font color='#0000FF'><b>else </b></font>
+120         {
+121             <font color='#0000FF'><b>if</b></font>(<font color='#0000FF'><a href="#flag">flag</a></font><b>==</b><font color='#00FFFF'><i>1</i></font>)<font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;font color='#0000FF'&gt;&lt;a href=\&quot;#%s\&quot;&gt;%s&lt;/a&gt; &quot;</font><b>,</b><font color='#0000FF'><a href="#s">s</a></font><b>,</b><font color='#0000FF'><a href="#s">s</a></font>);
+122             <font color='#0000FF'><b>else </b></font><font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;font color='#0000FF'&gt;&lt;a href=\&quot;#%s\&quot;&gt;%s&lt;/a&gt;&quot;</font><b>,</b><font color='#0000FF'><a href="#s">s</a></font><b>,</b><font color='#0000FF'><a href="#s">s</a></font>);
+123             <font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;/font&gt;&quot;</font>);
+124             
+125         }
+126         
+127     }
+128     
+129 }
+130 <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a href="#write_begin">write_begin</a></font>()
+131 {
+132     <font color='#0000FF'><a href="#indent">indent</a></font>();
+133     <font color='#0000FF'><a href="#write_html">write_html</a></font>();
+134     <font color='#0000FF'><a href="#column">column</a> </font><b>+=</b><font color='#0000FF'><a name="INDENT">INDENT</a></font>;
+135     <font color='#0000FF'><a href="#indent">indent</a></font>();
+136     
+137 }
+138 <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a href="#write_end">write_end</a></font>()
+139 {
+140     <font color='#0000FF'><a href="#column">column</a> </font><b>-=</b><font color='#0000FF'><a href="#INDENT">INDENT</a></font>;
+141     <font color='#0000FF'><a href="#indent">indent</a></font>();
+142     <font color='#0000FF'><a href="#write_html">write_html</a></font>();
+143     <font color='#0000FF'><a href="#indent">indent</a></font>();
+144     
+145 }
+146 <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a href="#write_open">write_open</a></font>()
+147 {
+148     <font color='#0000FF'><a href="#write_html">write_html</a></font>();
+149     <font color='#00FF00'>//putchar(' ');</font>
+150     <font color='#0000FF'><a href="#paren">paren</a></font><b>++</b>;
+151     
+152 }
+153 <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a href="#write_close">write_close</a></font>()
+154 {
+155     <font color='#0000FF'><a href="#write_html">write_html</a></font>();
+156     <font color='#00FF00'>//putchar(' ');</font>
+157     <font color='#0000FF'><a href="#paren">paren</a></font><b>--</b>;
+158     
+159 }
+160 <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a href="#write_bopen">write_bopen</a></font>()
+161 {
+162     <font color='#0000FF'><a href="#write_html">write_html</a></font>();
+163     
+164 }
+165 <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a href="#write_bclose">write_bclose</a></font>()
+166 {
+167     <font color='#0000FF'><a href="#write_html">write_html</a></font>();
+168     
+169 }
+170 <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a href="#write_sep">write_sep</a></font>()
+171 {
+172     <font color='#0000FF'><a href="#write_html">write_html</a></font>();
+173     <font color='#0000FF'><b>if</b></font>(<b>!</b><font color='#0000FF'><a href="#paren">paren</a></font>)<font color='#0000FF'><a href="#indent">indent</a></font>();
+174     <font color='#0000FF'><b>else </b></font><font color='#0000FF'><a name="putchar">putchar</a></font>(<font color='#00FFFF'><u>' '</u></font>);
+175     
+176 }
+177 <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a href="#write_op">write_op</a></font>()
+178 {
+179     <font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;b&gt;&quot;</font>);
+180     <font color='#0000FF'><a href="#write_html">write_html</a></font>();
+181     <font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;/b&gt;&quot;</font>);
+182     
+183 }
+184 <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a href="#write_inline">write_inline</a></font>()
+185 {
+186     <font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;font color='#00FF00'&gt;&quot;</font>);
+187     <font color='#0000FF'><a href="#write_html">write_html</a></font>();
+188     <font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;/font&gt;&quot;</font>);
+189     <font color='#0000FF'><a href="#indent">indent</a></font>();
+190     
+191 }
+192 <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a href="#write_comment">write_comment</a></font>()
+193 {
+194     <font color='#0000FF'><b>char </b></font><font color='#0000FF'><a name="c">c</a></font><b>,</b><font color='#0000FF'><a name="c1">c1</a></font>;
+195     <font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;font color='#00FF00'&gt;/*&quot;</font>);
+196     <font color='#0000FF'><a name="loop">loop</a></font><b>:</b><font color='#0000FF'><b>while </b></font>((<font color='#0000FF'><a href="#c">c</a> </font><b>=</b><font color='#0000FF'><a name="input">input</a></font>())<b>!=</b><font color='#00FFFF'><u>'*'</u></font><b>&amp;&amp;</b><font color='#0000FF'><a href="#c">c</a> </font><b>!=</b><font color='#00FFFF'><i>0</i></font>)<font color='#0000FF'><a href="#write_html_char">write_html_char</a></font>(<font color='#0000FF'><a href="#c">c</a></font>);
+197     <font color='#0000FF'><a href="#write_html_char">write_html_char</a></font>(<font color='#00FFFF'><u>'*'</u></font>);
+198     <font color='#0000FF'><b>if </b></font>((<font color='#0000FF'><a href="#c1">c1</a> </font><b>=</b><font color='#0000FF'><a href="#input">input</a></font>())<b>!=</b><font color='#00FFFF'><u>'/'</u></font><b>&amp;&amp;</b><font color='#0000FF'><a href="#c">c</a> </font><b>!=</b><font color='#00FFFF'><i>0</i></font>)
+199     {
+200         <font color='#0000FF'><a name="unput">unput</a></font>(<font color='#0000FF'><a href="#c1">c1</a></font>);
+201         <font color='#0000FF'><b>goto </b></font><font color='#0000FF'><a href="#loop">loop</a></font>;
+202         
+203     }
+204     <font color='#0000FF'><b>if </b></font>(<font color='#0000FF'><a href="#c">c</a> </font><b>!=</b><font color='#00FFFF'><i>0</i></font>)<font color='#0000FF'><a href="#write_html_char">write_html_char</a></font>(<font color='#0000FF'><a href="#c1">c1</a></font>);
+205     <font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;/font&gt;&quot;</font>);
+206     <font color='#0000FF'><a href="#indent">indent</a></font>();
+207     
+208 }
+209 <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a href="#write_directive">write_directive</a></font>()
+210 {
+211     <font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;font color='#FF00FF'&gt;&lt;b&gt;&quot;</font>);
+212     <font color='#0000FF'><a href="#write_html">write_html</a></font>();
+213     <font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;/b&gt;&lt;/font&gt;&quot;</font>);
+214     <font color='#0000FF'><a href="#indent">indent</a></font>();
+215     
+216 }
+217 <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a href="#error">error</a></font>()
+218 {
+219     <font color='#0000FF'><a name="assert">assert</a></font>(<font color='#00FFFF'><i>0</i></font>);
+220     
+221 }
+222 <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a href="#write_html_char">write_html_char</a></font>(<font color='#0000FF'><b>char </b></font><font color='#0000FF'><a href="#c">c</a></font>)
+223 {
+224     <font color='#0000FF'><b>switch</b></font>(<font color='#0000FF'><a href="#c">c</a></font>)
+225     {
+226         <font color='#0000FF'><b>case </b></font><font color='#00FFFF'><u>'&lt;'</u></font><b>:</b><font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&amp;lt;&quot;</font>);
+227         <font color='#0000FF'><b>break</b></font>;
+228         <font color='#0000FF'><b>case </b></font><font color='#00FFFF'><u>'&gt;'</u></font><b>:</b><font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&amp;gt;&quot;</font>);
+229         <font color='#0000FF'><b>break</b></font>;
+230         <font color='#0000FF'><b>case </b></font><font color='#00FFFF'><u>'&quot;'</u></font><b>:</b><font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&amp;quot;&quot;</font>);
+231         <font color='#0000FF'><b>break</b></font>;
+232         <font color='#0000FF'><b>case </b></font><font color='#00FFFF'><u>'&amp;'</u></font><b>:</b><font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&amp;amp;&quot;</font>);
+233         <font color='#0000FF'><b>break</b></font>;
+234         <font color='#0000FF'><b>default</b></font><b>:</b><font color='#0000FF'><a href="#putchar">putchar</a></font>(<font color='#0000FF'><a href="#c">c</a></font>);
+235         
+236     }
+237     
+238 }
+239 <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a href="#write_html">write_html</a></font>()
+240 {
+241     <font color='#0000FF'><b>char </b></font><b>*</b><font color='#0000FF'><a href="#s">s</a> </font><b>=</b><font color='#0000FF'><a href="#yytext">yytext</a></font>;
+242     <font color='#0000FF'><b>while</b></font>(<b>*</b><font color='#0000FF'><a href="#s">s</a></font>)<font color='#0000FF'><a href="#write_html_char">write_html_char</a></font>(<b>*</b><font color='#0000FF'><a href="#s">s</a></font><b>++</b>);
+243     
+244 }
+245 <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a href="#indent">indent</a></font>()
+246 {
+247     <font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;\n%-*d&quot;</font><b>,</b><font color='#0000FF'><a href="#column">column</a></font><b>,</b><font color='#0000FF'><a href="#line">line</a></font><b>++</b>);
+248     
+249 }
+250 <font color='#0000FF'><b>int </b></font><font color='#0000FF'><a href="#lookup">lookup</a></font>(<font color='#0000FF'><b>char </b></font><b>*</b><font color='#0000FF'><a href="#lexeme">lexeme</a></font>)
+251 {
+252     <font color='#0000FF'><b>int </b></font><font color='#0000FF'><a name="i">i</a></font><b>=</b><font color='#00FFFF'><i>0</i></font>;
+253     <font color='#0000FF'><b>int </b></font><font color='#0000FF'><a href="#flag">flag</a> </font><b>=</b><font color='#00FFFF'><i>0</i></font>;
+254     <font color='#0000FF'><b>for</b></font>(<font color='#0000FF'><a href="#i">i</a></font><b>=</b><font color='#00FFFF'><i>0</i></font>; <font color='#0000FF'><a href="#i">i</a></font><b>&lt;</b><font color='#0000FF'><a href="#insert_index">insert_index</a></font>; <font color='#0000FF'><a href="#i">i</a></font><b>++</b>)
+255     {
+256         <font color='#0000FF'><b>if</b></font>(<font color='#0000FF'><a name="strcmp">strcmp</a></font>(<font color='#0000FF'><a href="#symtable">symtable</a></font>[<font color='#0000FF'><a href="#i">i</a></font>]<b>.</b><font color='#0000FF'><a href="#lexptr">lexptr</a></font><b>,</b><font color='#0000FF'><a href="#lexeme">lexeme</a></font>)<b>==</b><font color='#00FFFF'><i>0</i></font>)
+257         {
+258             <font color='#0000FF'><a href="#flag">flag</a></font><b>=</b><font color='#00FFFF'><i>1</i></font>;
+259             <font color='#0000FF'><b>break</b></font>;
+260             
+261         }
+262         
+263     }
+264     <font color='#0000FF'><b>if</b></font>(<font color='#0000FF'><a href="#flag">flag</a></font><b>==</b><font color='#00FFFF'><i>0</i></font>)
+265     {
+266         <font color='#0000FF'><b>return </b></font><b>-</b><font color='#00FFFF'><i>1</i></font>;
+267         
+268     }
+269     <font color='#0000FF'><b>else </b></font>
+270     {
+271         <font color='#0000FF'><b>return </b></font><font color='#0000FF'><a href="#i">i</a></font>;
+272         
+273     }
+274     
+275 }
+276 <font color='#0000FF'><b>int </b></font><font color='#0000FF'><a href="#insert">insert</a></font>(<font color='#0000FF'><b>char </b></font><b>*</b><font color='#0000FF'><a href="#a">a</a></font><b>,</b><font color='#0000FF'><b>int </b></font><font color='#0000FF'><a href="#token">token</a></font>)
+277 {
+278     <font color='#0000FF'><a href="#symtable">symtable</a></font>[<font color='#0000FF'><a href="#insert_index">insert_index</a></font>]<b>.</b><font color='#0000FF'><a href="#lexptr">lexptr</a> </font><b>=</b>(<font color='#0000FF'><b>char </b></font><b>*</b>)<font color='#0000FF'><a name="malloc">malloc</a></font>(<font color='#00FFFF'><i>10</i></font>);
+279     <font color='#0000FF'><a name="strcpy">strcpy</a></font>(<font color='#0000FF'><a href="#symtable">symtable</a></font>[<font color='#0000FF'><a href="#insert_index">insert_index</a></font>]<b>.</b><font color='#0000FF'><a href="#lexptr">lexptr</a></font><b>,</b><font color='#0000FF'><a href="#a">a</a></font>);
+280     <font color='#0000FF'><a href="#symtable">symtable</a></font>[<font color='#0000FF'><a href="#insert_index">insert_index</a></font><b>++</b>]<b>.</b><font color='#0000FF'><a href="#token">token</a></font><b>=</b><font color='#0000FF'><a href="#token">token</a></font>;
+281     <font color='#0000FF'><b>return </b></font><font color='#0000FF'><a href="#insert_index">insert_index</a> </font><b>-</b><font color='#00FFFF'><i>1</i></font>;
+282     
+283 }
+284 <font color='#0000FF'><b>void </b></font><font color='#0000FF'><a href="#init">init</a></font>()
+285 {
+286     <font color='#0000FF'><b>char </b></font><font color='#0000FF'><a name="keywords">keywords</a></font>[<font color='#00FFFF'><i>32</i></font>][<font color='#00FFFF'><i>10</i></font>]<b>=</b>
+287     {
+288         <font color='#FF0000'>&quot;auto&quot;</font><b>,</b><font color='#FF0000'>&quot;double&quot;</font><b>,</b><font color='#FF0000'>&quot;int&quot;</font><b>,</b><font color='#FF0000'>&quot;struct&quot;</font><b>,</b><font color='#FF0000'>&quot;break&quot;</font><b>,</b><font color='#FF0000'>&quot;else&quot;</font><b>,</b><font color='#FF0000'>&quot;long&quot;</font><b>,</b><font color='#FF0000'>&quot;switch&quot;</font><b>,</b><font color='#FF0000'>&quot;case&quot;</font><b>,</b><font color='#FF0000'>&quot;enum&quot;</font><b>,</b><font color='#FF0000'>&quot;register&quot;</font><b>,</b><font color='#FF0000'>&quot;typedef&quot;</font><b>,</b><font color='#FF0000'>&quot;char&quot;</font><b>,</b><font color='#FF0000'>&quot;extern&quot;</font><b>,</b><font color='#FF0000'>&quot;return&quot;</font><b>,</b><font color='#FF0000'>&quot;union&quot;</font><b>,</b><font color='#FF0000'>&quot;const&quot;</font><b>,</b><font color='#FF0000'>&quot;float&quot;</font><b>,</b><font color='#FF0000'>&quot;short&quot;</font><b>,</b><font color='#FF0000'>&quot;unsigned&quot;</font><b>,</b><font color='#FF0000'>&quot;continue&quot;</font><b>,</b><font color='#FF0000'>&quot;for&quot;</font><b>,</b><font color='#FF0000'>&quot;signed&quot;</font><b>,</b><font color='#FF0000'>&quot;void&quot;</font><b>,</b><font color='#FF0000'>&quot;default&quot;</font><b>,</b><font color='#FF0000'>&quot;goto&quot;</font><b>,</b><font color='#FF0000'>&quot;sizeof&quot;</font><b>,</b><font color='#FF0000'>&quot;volatile&quot;</font><b>,</b><font color='#FF0000'>&quot;do&quot;</font><b>,</b><font color='#FF0000'>&quot;if&quot;</font><b>,</b><font color='#FF0000'>&quot;static&quot;</font><b>,</b><font color='#FF0000'>&quot;while&quot;</font>
+289     }
+290     ;
+291     <font color='#0000FF'><b>int </b></font><font color='#0000FF'><a href="#i">i</a></font><b>=</b><font color='#00FFFF'><i>0</i></font>;
+292     <font color='#0000FF'><b>for</b></font>(<font color='#0000FF'><a href="#i">i</a></font><b>=</b><font color='#00FFFF'><i>0</i></font>; <font color='#0000FF'><a href="#i">i</a></font><b>&lt;</b><font color='#00FFFF'><i>32</i></font>; <font color='#0000FF'><a href="#i">i</a></font><b>++</b>)
+293     {
+294         <font color='#0000FF'><a href="#insert">insert</a></font>(<font color='#0000FF'><a href="#keywords">keywords</a></font>[<font color='#0000FF'><a href="#i">i</a></font>]<b>,</b><font color='#00FFFF'><i>0</i></font>);
+295         
+296     }
+297     
+298 }
+299 <font color='#0000FF'><b>int </b></font><font color='#0000FF'><a name="main">main</a></font>()
+300 {
+301     <font color='#0000FF'><a name="FILE">FILE</a> </font><b>*</b><font color='#0000FF'><a name="fp">fp</a></font>;
+302     <font color='#0000FF'><a href="#fp">fp</a> </font><b>=</b><font color='#0000FF'><a name="freeopen">freeopen</a></font>(<font color='#FF0000'>&quot;code.html&quot;</font><b>,</b><font color='#FF0000'>&quot;w&quot;</font><b>,</b><font color='#0000FF'><a name="stdout">stdout</a></font>);
+303     <font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;&lt;html&gt;&lt;pre&gt;\n&quot;</font>);
+304     <font color='#0000FF'><a href="#indent">indent</a></font>();
+305     <font color='#0000FF'><a href="#init">init</a></font>();
+306     <font color='#0000FF'><a name="yyin">yyin</a> </font><b>=</b><font color='#0000FF'><a name="fopen">fopen</a></font>(<font color='#FF0000'>&quot;input.c&quot;</font><b>,</b><font color='#FF0000'>&quot;r&quot;</font>);
+307     <font color='#0000FF'><a name="yylex">yylex</a></font>();
+308     <font color='#0000FF'><a href="#printf">printf</a></font>(<font color='#FF0000'>&quot;\n&lt;/pre&gt;&lt;/html&gt;\n&quot;</font>);
+309     <font color='#0000FF'><b>return </b></font><font color='#00FFFF'><i>0</i></font>;
+310     
+311 }
+312 
+</pre></html>

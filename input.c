@@ -1,84 +1,46 @@
-%option noyywrap
-%{
-    #include<stdio.h>
-    #include<stdlib.h>
-    #include<assert.h>
-    #include<string.h>
-    #define INDENT (4)
-    int line = 1;
-    int column = 4;
-    int paren = 0;
+#include<stdio.h>
+#include<stdlib.h>
+#include<assert.h>
+#include<string.h>
+#define INDENT (4)
+int line = 1;
+int column = 4;
+int paren = 0;
 
-    #define MAXSYMBOLS 100000
-    struct entry {
-        char *lexptr;
-        int token;
-    };
-    struct entry symtable[MAXSYMBOLS];
-    int lookup(char *lexeme); // returns index of the symbol table where the lexeme appears, -1 otherwise
-    int insert(char *a, int token); // inserts a new entry into a symbol table
-    void init(); // initializes the symbol table with preloaded keywords
-    int insert_index = 0;
+#define MAXSYMBOLS 200
+struct entry {
+	char *lexptr;
+	int token;
+};
+struct entry symtable[MAXSYMBOLS];
+int lookup(char *lexeme); // returns index of the symbol table where the lexeme appears, -1 otherwise
+int insert(char *a, int token); // inserts a new entry into a symbol table
+void init(); // initializes the symbol table with preloaded keywords
+int insert_index = 0;
 
-    void indent();
-    void write_html();
-    void write_html_char(char);
+void indent();
+void write_html();
+void write_html_char(char);
 
-    void write_string();
-    void write_char();
-    void write_oct();
-    void write_hex();
-    void write_int();
-    void write_fp();
-    void write_id();
-    void write_begin();
-    void write_end();
-    void write_open();
-    void write_close();
-    void write_bopen();
-    void write_bclose();
-    void write_sep();
-    void write_op();
-    void write_inline();
-    void write_comment();
-    void write_directive();
-    void error();
-
-%}
-
-quote '
-ditto   \"
-back    \\
-digit   [0-9]
-exp [eE]([+-]?)({digit}+)
-hex [0-9a-fA-F]
-alpha   [a-zA-Z_]
-ch  [^\\'\"\n]
-
-%%
-{ditto}({back}{ch}|{back}{back}|{back}{quote}|{back}{ditto}|{ch}|{quote})*{ditto}   { write_string(); }
-{quote}({back}{ch}|{back}{back}|{back}{quote}|{back}{ditto}|{ch}|{ditto}){quote}    { write_char(); }
-0([0-7]+)   { write_oct();}
-0[xX]({hex})+   { write_hex(); }
-{digit}+    { write_int(); }
-{digit}+"."({digit}*)({exp}?) { write_fp();  }
-{alpha}({alpha}|{digit})*(" "|"\n")? { write_id();  }
-"{" { write_begin(); }
-"}" { write_end(); }
-"(" { write_open(); }
-")" { write_close(); }
-"[" { write_bopen(); }
-"]" { write_bclose(); }
-";" { write_sep(); }
-(\.|\-\>|\+\+|\-\-|&|\*|\+|\-|~|!|\/|\%|\<\<|\>\>|\<|\>|=|==|"||"|"|"|\<=|\>=|!=|\^\||&&|\|\|\?|\*=|\/=|\%=|\+=|\-=|\<\<=|\>\>=|&=|\^=|\|=|,|#|##|;|:|\"|\.\.\.) { write_op(); }
-
-"\/\/"[^\n]*	{ write_inline(); }
-"/*" { write_comment(); }
-#[^\n]* { write_directive(); }
-
-[ \t\v\n\r\f] ;
-{ch} { error(); }
-%%
+void write_string();
+void write_char();
+void write_oct();
+void write_hex();
+void write_int();
+void write_fp();
+void write_id();
+void write_begin();
+void write_end();
+void write_open();
+void write_close();
+void write_bopen();
+void write_bclose();
+void write_sep();
+void write_op();
+void write_inline();
+void write_comment();
+void write_directive();
+void error();
 
 void write_string() {
     printf("<font color='#FF0000'>");
@@ -293,17 +255,14 @@ void init() {
     }
 }
 
-
 int main() {
 	FILE *fp;
-	fp = freopen("output.html","w",stdout);
+	fp = freeopen("code.html","w",stdout);
     printf("<html><pre>\n");
     indent();
     init();
 	yyin = fopen("input.c", "r");
     yylex();
     printf("\n</pre></html>\n");
-	fclose(fp);
-	fclose(yyin);
     return 0;
 }
